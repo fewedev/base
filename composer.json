@@ -1,0 +1,26 @@
+{
+    "name": "fewedev/base",
+    "description": "Feasible web development base classes",
+    "version": "1.0.0",
+    "license": "MIT",
+    "keywords": [
+        "base"
+    ],
+    "homepage": "https://github.com/fewedev/base",
+    "authors": [
+        {
+            "name": "Andreas Knollmann",
+            "email": "a.knollmann@seak.dev",
+            "homepage": "https://www.seak.dev",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "FeWeDev\\Base\\": "src"
+        }
+    }
+}
