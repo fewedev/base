@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FeWeDev\Help;
+namespace FeWeDev\Base;
 
 use Closure;
 use stdClass;
@@ -15,28 +15,28 @@ use stdClass;
 class Arrays
 {
     /** @var Variables */
-    protected $variableHelper;
+    protected $variables;
 
     /** @var Strings */
-    protected $stringHelper;
+    protected $strings;
 
     /**
-     * @param Variables|null $variableHelper
-     * @param Strings|null   $stringHelper
+     * @param Variables|null $variables
+     * @param Strings|null   $strings
      */
-    public function __construct(Variables $variableHelper = null, Strings $stringHelper = null)
+    public function __construct(Variables $variables = null, Strings $strings = null)
     {
-        if ($variableHelper === null) {
-            $variableHelper = new Variables();
+        if ($variables === null) {
+            $variables = new Variables();
         }
 
-        $this->variableHelper = $variableHelper;
+        $this->variables = $variables;
 
-        if ($stringHelper === null) {
-            $stringHelper = new Strings();
+        if ($strings === null) {
+            $strings = new Strings();
         }
 
-        $this->stringHelper = $stringHelper;
+        $this->strings = $strings;
     }
 
     /**
@@ -502,13 +502,13 @@ class Arrays
             if (is_array($value)) {
                 /** @var array $value */
                 $value = count($value) === 1 && array_key_exists(0, $value) && is_string($value[ 0 ]) &&
-                $this->variableHelper->isEmpty(trim($value[ 0 ])) ? $value[ 0 ] : $this->arrayFilterRecursive($value);
+                $this->variables->isEmpty(trim($value[ 0 ])) ? $value[ 0 ] : $this->arrayFilterRecursive($value);
             }
         }
 
         return array_filter($array, function ($value) {
-            return ! $this->variableHelper->isEmpty($value) &&
-                ! (is_string($value) && $this->variableHelper->isEmpty(trim($value)));
+            return ! $this->variables->isEmpty($value) &&
+                ! (is_string($value) && $this->variables->isEmpty(trim($value)));
         });
     }
 
@@ -580,7 +580,7 @@ class Arrays
                 $array[ $key ] = $this->cleanStrings($value);
             } else {
                 if (is_string($value)) {
-                    $array[ $key ] = $this->stringHelper->cleanString($value);
+                    $array[ $key ] = $this->strings->cleanString($value);
                 }
             }
         }

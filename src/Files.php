@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FeWeDev\Help;
+namespace FeWeDev\Base;
 
 use Exception;
 use InvalidArgumentException;
@@ -15,27 +15,27 @@ use InvalidArgumentException;
 class Files
 {
     /** @var Variables */
-    protected $variableHelper;
+    protected $variables;
 
     /** @var Arrays */
-    protected $arrayHelper;
+    protected $arrays;
 
     /**
-     * @param Arrays|null    $arrayHelper
-     * @param Variables|null $variableHelper
+     * @param Arrays|null    $arrays
+     * @param Variables|null $variables
      */
-    public function __construct(Variables $variableHelper = null, Arrays $arrayHelper = null)
+    public function __construct(Variables $variables = null, Arrays $arrays = null)
     {
-        if ($variableHelper === null) {
-            $variableHelper = new Variables();
+        if ($variables === null) {
+            $variables = new Variables();
         }
 
-        if ($arrayHelper === null) {
-            $arrayHelper = new Arrays($variableHelper);
+        if ($arrays === null) {
+            $arrays = new Arrays($variables);
         }
 
-        $this->variableHelper = $variableHelper;
-        $this->arrayHelper = $arrayHelper;
+        $this->variables = $variables;
+        $this->arrays = $arrays;
     }
 
     /**
@@ -50,7 +50,7 @@ class Files
      */
     public function determineFilePath(string $path, string $basePath, bool $makeDir = false): string
     {
-        if ($this->variableHelper->isEmpty($path)) {
+        if ($this->variables->isEmpty($path)) {
             throw new Exception('No path specified');
         }
 
@@ -64,9 +64,8 @@ class Files
         // Check for last character
         $pathEnding = substr($path, -1);
 
-        if (( ! array_key_exists('extension', $fileCheck) ||
-                $this->variableHelper->isEmpty($fileCheck[ 'extension' ])) && $pathEnding != '/' &&
-            $pathEnding != "\\") {
+        if (( ! array_key_exists('extension', $fileCheck) || $this->variables->isEmpty($fileCheck[ 'extension' ])) &&
+            $pathEnding != '/' && $pathEnding != "\\") {
             $path .= '/';
         }
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FeWeDev\Help;
+namespace FeWeDev\Base;
 
 /**
  * @author      Andreas Knollmann

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FeWeDev\Help;
+namespace FeWeDev\Base;
 
 use Exception;
 use JsonSerializable;
@@ -15,18 +15,18 @@ use JsonSerializable;
 class Json
 {
     /** @var Variables */
-    protected $variableHelper;
+    protected $variables;
 
     /**
-     * @param Variables|null $variableHelper
+     * @param Variables|null $variables
      */
-    public function __construct(Variables $variableHelper = null)
+    public function __construct(Variables $variables = null)
     {
-        if ($variableHelper === null) {
-            $variableHelper = new Variables();
+        if ($variables === null) {
+            $variables = new Variables();
         }
 
-        $this->variableHelper = $variableHelper;
+        $this->variables = $variables;
     }
 
     /**
@@ -36,7 +36,7 @@ class Json
      */
     public function decode(?string $encodedValue)
     {
-        if ( ! $this->variableHelper->isEmpty($encodedValue)) {
+        if ( ! $this->variables->isEmpty($encodedValue)) {
             return json_decode($encodedValue, true);
         }
 
