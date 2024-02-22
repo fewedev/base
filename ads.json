@@ -1,0 +1,21 @@
+{
+    "global": {
+        "systemName": "fewedev_base"
+    },
+    "system": {
+        "serverNames": [
+            "cli"
+        ]
+    },
+    "cli": {
+        "imageName": "fewedev/cli",
+        "imageTag": "8.3",
+        "containerVolumes": [
+            "${systemPath}:/var/www/fewedev/base:me:w"
+        ],
+        "containerPrepareDockerScript": "ads/cli/docker/prepare.sh",
+        "containerInstallDockerScript": "ads/cli/docker/install.sh",
+        "bashPath": "/var/www/fewedev/base",
+        "bashUser": "me"
+    }
+}

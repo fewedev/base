@@ -22,7 +22,8 @@ class Strings
     {
         $hash = $this->generateUUID();
 
-        return sprintf('%08s-%04s-%04x-%04x-%12s', // 32 bits for "time_low"
+        return sprintf(
+            '%08s-%04s-%04x-%04x-%12s', // 32 bits for "time_low"
             substr($hash, 0, 8), // 16 bits for "time_mid"
             substr($hash, 8, 4), // 16 bits for "time_hi_and_version",
             // four most significant bits holds version number 5
@@ -30,7 +31,8 @@ class Strings
             // 8 bits for "clk_seq_low",
             // two most significant bits holds zero and one for variant DCE1.1
             (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000, // 48 bits for "node"
-            substr($hash, 20, 12));
+            substr($hash, 20, 12)
+        );
     }
 
     /**
@@ -83,7 +85,12 @@ class Strings
      */
     public function cutString(string $string, int $maxLength): string
     {
-        return strlen($string) > $maxLength ?
-            (substr($string, 0, strpos(wordwrap($string, $maxLength - 3), "\n")) . '...') : $string;
+        if (strlen($string) > $maxLength) {
+            $length = strpos(wordwrap($string, $maxLength - 3), "\n");
+
+            return ($length === false ? substr($string, 0) : substr($string, 0, $length)) . '...';
+        }
+
+        return $string;
     }
 }

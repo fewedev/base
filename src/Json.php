@@ -36,8 +36,8 @@ class Json
      */
     public function decode(?string $encodedValue)
     {
-        if ( ! $this->variables->isEmpty($encodedValue)) {
-            return json_decode($encodedValue, true);
+        if (! $this->variables->isEmpty($encodedValue)) {
+            return json_decode((string)$encodedValue, true);
         }
 
         return null;
@@ -49,16 +49,20 @@ class Json
      * @param bool  $pretty
      * @param bool  $checkEncoding
      *
-     * @return string
+     * @return string|null
      */
-    public function encode($valueToEncode, bool $unescaped = false, bool $pretty = false, bool $checkEncoding = false)
-    {
+    public function encode(
+        $valueToEncode,
+        bool $unescaped = false,
+        bool $pretty = false,
+        bool $checkEncoding = false
+    ): ?string {
         if ($checkEncoding) {
             $checkValue = is_array($valueToEncode) ? $valueToEncode : [$valueToEncode];
             try {
                 $this->checkEncoding($checkValue);
             } catch (Exception $exception) {
-                return false;
+                return null;
             }
         }
 
@@ -72,22 +76,25 @@ class Json
             $options |= JSON_PRETTY_PRINT;
         }
 
-        return $options > 0 ? json_encode($valueToEncode, $options) : json_encode($valueToEncode);
+        $result = $options > 0 ? json_encode($valueToEncode, $options) : json_encode($valueToEncode);
+
+        return $result === false ? null : $result;
     }
 
     /**
-     * @param array  $array
-     * @param string $parentPath
+     * @param array<mixed, mixed> $array
+     * @param string              $parentPath
      *
+     * @return void
      * @throws Exception
      */
-    public function checkEncoding(array $array, string $parentPath = '')
+    public function checkEncoding(array $array, string $parentPath = ''): void
     {
         foreach ($array as $key => $value) {
             if (is_array($value)) {
-                $this->checkEncoding($value, empty($parentPath) ? $key : ($parentPath . ':' . $key));
+                $this->checkEncoding($value, empty($parentPath) ? (string)$key : ($parentPath . ':' . $key));
                 continue;
-            } else if (is_object($value)) {
+            } elseif (is_object($value)) {
                 if ($value instanceof JsonSerializable) {
                     $value = $value->jsonSerialize();
                 } else {
@@ -99,9 +106,14 @@ class Json
                 }
             }
 
-            if (mb_detect_encoding($value, null, true) === false) {
-                throw new Exception(sprintf('Invalid encoding found in path: %s with value: %s',
-                    empty($parentPath) ? $key : ($parentPath . ':' . $key), $value));
+            if (is_string($value) && mb_detect_encoding($value, null, true) === false) {
+                throw new Exception(
+                    sprintf(
+                        'Invalid encoding found in path: %s with value: %s',
+                        empty($parentPath) ? $key : ($parentPath . ':' . $key),
+                        $value
+                    )
+                );
             }
         }
     }

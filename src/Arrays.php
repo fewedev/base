@@ -40,10 +40,10 @@ class Arrays
     }
 
     /**
-     * @param array $array1
-     * @param array $array2
+     * @param array<mixed, mixed> $array1
+     * @param array<mixed, mixed> $array2
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function mergeArrays(array $array1, array $array2): array
     {
@@ -53,7 +53,7 @@ class Arrays
         $config2Keys = array_keys($array2);
 
         foreach ($config1Keys as $configKey) {
-            if ( ! is_numeric($configKey)) {
+            if (! is_numeric($configKey)) {
                 $allKeysNumeric = false;
                 break;
             }
@@ -61,7 +61,7 @@ class Arrays
 
         if ($allKeysNumeric) {
             foreach ($config2Keys as $configKey) {
-                if ( ! is_numeric($configKey)) {
+                if (! is_numeric($configKey)) {
                     $allKeysNumeric = false;
                     break;
                 }
@@ -77,7 +77,7 @@ class Arrays
         foreach ($array1 as $key1 => $value1) {
             $value2 = array_key_exists($key1, $array2) !== false ? $array2[ $key1 ] : null;
 
-            if (( ! is_scalar($value1) && ! is_array($value1)) || ( ! is_scalar($value2) && ! is_array($value2))) {
+            if ((! is_scalar($value1) && ! is_array($value1)) || (! is_scalar($value2) && ! is_array($value2))) {
                 $combined[ $key1 ] = $value1;
 
                 continue;
@@ -108,25 +108,23 @@ class Arrays
         }
 
         foreach ($array2 as $key2 => $value2) {
-            if ( ! is_numeric($key2) && ! array_key_exists($key2, $combined) !== false) {
+            if (! is_numeric($key2) && ! array_key_exists($key2, $combined) !== false) {
                 if (preg_match('/(.*)\+$/', $key2, $matches)) {
                     $key2 = array_key_exists(1, $matches) ? $matches[ 1 ] : null;
 
-                    if (array_key_exists($key2, $combined) !== false) {
-                        $combinedValue = $combined[ $key2 ];
-
-                        if ( ! is_array($combinedValue)) {
-                            $combined[ $key2 ] = [$combinedValue];
+                    if ($key2 !== null && array_key_exists($key2, $combined) !== false) {
+                        if (! is_array($combined[ $key2 ])) {
+                            $combined[ $key2 ] = [$combined[ $key2 ]];
                         }
 
                         $combined[ $key2 ][] = $value2;
                     } else {
                         $combined[ $key2 ] = $value2;
                     }
-                } else if (preg_match('/(.*)\-$/', $key2, $matches)) {
+                } elseif (preg_match('/(.*)\-$/', $key2, $matches)) {
                     $key2 = array_key_exists(1, $matches) ? $matches[ 1 ] : null;
 
-                    if (array_key_exists($key2, $combined) !== false) {
+                    if ($key2 !== null && array_key_exists($key2, $combined) !== false) {
                         $combinedValue = $combined[ $key2 ];
 
                         if (is_array($combinedValue)) {
@@ -155,7 +153,7 @@ class Arrays
     /**
      * @param stdClass $stdClassObject
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function stdClassToArray(stdClass $stdClassObject): array
     {
@@ -165,16 +163,16 @@ class Arrays
     }
 
     /**
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function stdClassToArrayCheckValues(array $array): array
     {
         foreach ($array as $key => $value) {
             if ($value instanceof stdClass) {
                 $array[ $key ] = $this->stdClassToArray($value);
-            } else if (is_array($value)) {
+            } elseif (is_array($value)) {
                 $array[ $key ] = $this->stdClassToArrayCheckValues($value);
             } else {
                 $array[ $key ] = $value;
@@ -185,9 +183,9 @@ class Arrays
     }
 
     /**
-     * @param array  $array
-     * @param string $key
-     * @param mixed  $defaultValue
+     * @param array<mixed, mixed> $array
+     * @param string              $key
+     * @param mixed               $defaultValue
      *
      * @return mixed
      */
@@ -197,11 +195,11 @@ class Arrays
     }
 
     /**
-     * @param array       $array
-     * @param string      $key
-     * @param mixed       $defaultValue
-     * @param bool        $splitKey
-     * @param string|null $checkedValue
+     * @param array<mixed, mixed> $array
+     * @param string              $key
+     * @param mixed               $defaultValue
+     * @param bool                $splitKey
+     * @param string|null         $checkedValue
      *
      * @return mixed
      */
@@ -210,86 +208,90 @@ class Arrays
         string $key,
         $defaultValue = null,
         bool $splitKey = true,
-        string $checkedValue = null)
-    {
-        if (empty($array) || (empty($key) && ! $key == 0)) {
+        string $checkedValue = null
+    ) {
+        if (empty($array) || (empty($key) && $key != 0)) {
             return $defaultValue;
         }
 
-        if ( ! $splitKey && array_key_exists($key, $array)) {
+        if (! $splitKey && array_key_exists($key, $array)) {
             return $array[ $key ];
         }
 
         $keys = $splitKey ? explode(':', $key) : [$key];
 
-        if ( ! empty($keys)) {
-            $firstKey = trim(array_shift($keys));
+        $firstKey = trim((string)array_shift($keys));
 
-            if ($checkedValue && count($keys) === 0) {
-                if (array_key_exists($firstKey, $array) && $array[ $firstKey ] == $checkedValue) {
-                    return $array;
+        if ($checkedValue && count($keys) === 0) {
+            if (array_key_exists($firstKey, $array) && $array[ $firstKey ] == $checkedValue) {
+                return $array;
+            }
+
+            foreach ($array as $arrayItem) {
+                if (is_array($arrayItem) && array_key_exists($firstKey, $arrayItem) &&
+                    $arrayItem[ $firstKey ] == $checkedValue) {
+                    return $arrayItem;
                 }
+            }
+        } elseif (preg_match('/^\[([\w_-]+)=(.+)\]$/', $firstKey, $matches)) {
+            $valueKey = array_key_exists(1, $matches) ? $matches[ 1 ] : null;
+            $valueValue = array_key_exists(2, $matches) ? $matches[ 2 ] : null;
 
-                foreach ($array as $arrayItem) {
-                    if (is_array($arrayItem) && array_key_exists($firstKey, $arrayItem) &&
-                        $arrayItem[ $firstKey ] == $checkedValue) {
-                        return $arrayItem;
-                    }
-                }
-            } else if (preg_match('/^\[([\w_-]+)=(.+)\]$/', $firstKey, $matches)) {
-                $valueKey = array_key_exists(1, $matches) ? $matches[ 1 ] : null;
-                $valueValue = array_key_exists(2, $matches) ? $matches[ 2 ] : null;
+            foreach ($array as $arrayKey => $arrayValue) {
+                if (is_array($arrayValue)) {
+                    $valueKeys = array_keys($arrayValue);
 
-                foreach ($array as $arrayKey => $arrayValue) {
-                    if (is_array($arrayValue)) {
-                        $valueKeys = array_keys($arrayValue);
-
-                        foreach ($valueKeys as $nextValueKey) {
-                            if (strcasecmp($nextValueKey, $valueKey) == 0 &&
-                                array_key_exists($nextValueKey, $arrayValue) &&
-                                $arrayValue[ $nextValueKey ] == $valueValue) {
-                                if (count($keys) > 0) {
-                                    return $this->getValue($arrayValue, join(':', $keys), $defaultValue);
-                                } else {
-                                    return $arrayValue;
-                                }
-                            }
-                        }
-                    } else if (strcasecmp($arrayKey, $valueKey) == 0 && $valueValue == $arrayValue) {
-                        if (count($keys) > 0) {
-                            return $this->getValue($array, join(':', $keys), $defaultValue);
-                        } else {
-                            return $array;
-                        }
-                    }
-                }
-            } else {
-                if ( ! $this->isAssociative($array) && ! is_numeric($firstKey)) {
-                    $result = [];
-                    foreach ($array as $arrayValue) {
-                        if (is_array($arrayValue)) {
-                            $arrayResult = $this->getValue($arrayValue, $key, null, $splitKey, $checkedValue);
-                            if ($arrayResult !== null) {
-                                $result[] = $arrayResult;
-                            }
-                        }
-                    }
-                    return empty($result) ? $defaultValue : $result;
-                } else {
-                    $arrayKeys = array_keys($array);
-
-                    foreach ($arrayKeys as $arrayKey) {
-                        if (strcasecmp($arrayKey, $firstKey) == 0) {
-                            $result = array_key_exists($arrayKey, $array) ? $array[ $arrayKey ] : null;
-
-                            if (is_array($result) && count($keys) > 0) {
-                                return $this->getValue($result, join(':', $keys), $defaultValue, $splitKey,
-                                    $checkedValue);
-                            } else if (count($keys) === 0) {
-                                return $result;
+                    foreach ($valueKeys as $nextValueKey) {
+                        if ($valueKey !== null && strcasecmp($nextValueKey, $valueKey) == 0 &&
+                            array_key_exists($nextValueKey, $arrayValue) &&
+                            $arrayValue[ $nextValueKey ] == $valueValue) {
+                            if (count($keys) > 0) {
+                                return $this->getValue($arrayValue, join(':', $keys), $defaultValue);
                             } else {
-                                return $defaultValue;
+                                return $arrayValue;
                             }
+                        }
+                    }
+                } elseif ($valueKey !== null && strcasecmp((string)$arrayKey, $valueKey) == 0 &&
+                    $valueValue == $arrayValue) {
+                    if (count($keys) > 0) {
+                        return $this->getValue($array, join(':', $keys), $defaultValue);
+                    } else {
+                        return $array;
+                    }
+                }
+            }
+        } else {
+            if (! $this->isAssociative($array) && ! is_numeric($firstKey)) {
+                $result = [];
+                foreach ($array as $arrayValue) {
+                    if (is_array($arrayValue)) {
+                        $arrayResult = $this->getValue($arrayValue, $key, null, $splitKey, $checkedValue);
+                        if ($arrayResult !== null) {
+                            $result[] = $arrayResult;
+                        }
+                    }
+                }
+                return empty($result) ? $defaultValue : $result;
+            } else {
+                $arrayKeys = array_keys($array);
+
+                foreach ($arrayKeys as $arrayKey) {
+                    if (strcasecmp((string)$arrayKey, (string)$firstKey) == 0) {
+                        $result = array_key_exists($arrayKey, $array) ? $array[ $arrayKey ] : null;
+
+                        if (is_array($result) && count($keys) > 0) {
+                            return $this->getValue(
+                                $result,
+                                join(':', $keys),
+                                $defaultValue,
+                                $splitKey,
+                                $checkedValue
+                            );
+                        } elseif (count($keys) === 0) {
+                            return $result;
+                        } else {
+                            return $defaultValue;
                         }
                     }
                 }
@@ -300,16 +302,16 @@ class Arrays
     }
 
     /**
-     * @param array  $array
-     * @param string $value
-     * @param mixed  $defaultValue
+     * @param array<mixed, mixed> $array
+     * @param string              $value
+     * @param mixed               $defaultValue
      *
      * @return  int|string|mixed
      */
     public function getKey(array $array, string $value, $defaultValue = null)
     {
         foreach ($array as $key => $nextValue) {
-            if (strcasecmp($nextValue, $value) == 0) {
+            if (is_scalar($nextValue) && strcasecmp(strval($nextValue), $value) == 0) {
                 return $key;
             }
         }
@@ -318,9 +320,9 @@ class Arrays
     }
 
     /**
-     * @param mixed $value
-     * @param array $array
-     * @param bool  $caseSensitive
+     * @param mixed               $value
+     * @param array<mixed, mixed> $array
+     * @param bool                $caseSensitive
      *
      * @return bool
      */
@@ -340,9 +342,9 @@ class Arrays
     }
 
     /**
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function arrayCopy(array $array): array
     {
@@ -351,7 +353,7 @@ class Arrays
         foreach ($array as $key => $value) {
             if (is_array($value)) {
                 $copy[ $key ] = $this->arrayCopy($value);
-            } else if (is_object($value)) {
+            } elseif (is_object($value)) {
                 $copy[ $key ] = clone $value;
             } else {
                 $copy[ $key ] = $value;
@@ -362,7 +364,7 @@ class Arrays
     }
 
     /**
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
      * @return bool
      */
@@ -373,7 +375,7 @@ class Arrays
         }
 
         for ($iterator = count($array) - 1; $iterator; $iterator--) {
-            if ( ! array_key_exists($iterator, $array)) {
+            if (! array_key_exists($iterator, $array)) {
                 return true;
             }
         }
@@ -382,9 +384,9 @@ class Arrays
     }
 
     /**
-     * @param array  $array
-     * @param string $lineBreak
-     * @param int    $level
+     * @param array<mixed, mixed> $array
+     * @param string              $lineBreak
+     * @param int                 $level
      *
      * @return string
      */
@@ -393,7 +395,7 @@ class Arrays
         $output = '';
 
         foreach ($array as $key => $value) {
-            if ( ! empty($output)) {
+            if (! empty($output)) {
                 $output .= $lineBreak;
             }
 
@@ -402,23 +404,19 @@ class Arrays
             if (is_array($value)) {
                 $valueOutput = $this->output($value, $lineBreak, $level + 1);
 
-                if ( ! empty($valueOutput)) {
+                if (! empty($valueOutput)) {
                     $output .= $lineBreak . $valueOutput;
                 }
-            } else if (is_object($value) && is_callable([
-                    $value,
-                    '__toArray'
-                ])) {
-
+            } elseif (is_object($value) && is_callable([$value, '__toArray'])) {
                 $valueOutput = $this->output($value->__toArray(), $lineBreak, $level + 1);
 
-                if ( ! empty($valueOutput)) {
+                if (! empty($valueOutput)) {
                     $output .= $lineBreak . $valueOutput;
                 }
             } else {
-                $value = ( string )$value;
+                $value = is_scalar($value) ? strval($value) : null;
 
-                if (strlen($value) > 4096) {
+                if ($value !== null && strlen($value) > 4096) {
                     $value = '[' . strlen($value) . ' bytes]';
                 }
 
@@ -430,17 +428,17 @@ class Arrays
     }
 
     /**
-     * @param array  $array
-     * @param string $regex
+     * @param array<mixed, mixed> $array
+     * @param string              $regex
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function getAllValues(array $array, string $regex): array
     {
         $result = [];
 
         foreach ($array as $key => $value) {
-            if (preg_match('/' . $regex . '/', $key)) {
+            if (preg_match('/' . $regex . '/', (string)$key)) {
                 $result[ $key ] = $value;
             }
         }
@@ -449,12 +447,12 @@ class Arrays
     }
 
     /**
-     * @param array $array
-     * @param array $keys
-     * @param mixed $value
-     * @param bool  $overwrite
+     * @param array<mixed, mixed> $array
+     * @param array<int, string>  $keys
+     * @param mixed               $value
+     * @param bool                $overwrite
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function addDeepValue(array $array, array $keys, $value, bool $overwrite = true): array
     {
@@ -465,7 +463,7 @@ class Arrays
         if (count($keys) > 1) {
             $key = array_shift($keys);
             $firstArray = array_key_exists($key, $array) ? $array[ $key ] : [];
-            if ( ! is_array($firstArray)) {
+            if (! is_array($firstArray)) {
                 $array[ $key ] = [$firstArray, $this->addDeepValue([], $keys, $value, $overwrite)];
             } else {
                 $array[ $key ] = $this->addDeepValue($firstArray, $keys, $value, $overwrite);
@@ -476,7 +474,7 @@ class Arrays
                 $array[ $key ] = $value;
             } else {
                 if (array_key_exists($key, $array)) {
-                    if ( ! is_array($array[ $key ])) {
+                    if (! is_array($array[ $key ])) {
                         $array[ $key ] = [$array[ $key ]];
                     }
                     $array[ $key ][] = $value;
@@ -492,15 +490,15 @@ class Arrays
     /**
      * Method to filter empty elements from XML
      *
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function arrayFilterRecursive(array $array): array
     {
         foreach ($array as &$value) {
             if (is_array($value)) {
-                /** @var array $value */
+                /** @var array<mixed, mixed> $value */
                 $value = count($value) === 1 && array_key_exists(0, $value) && is_string($value[ 0 ]) &&
                 $this->variables->isEmpty(trim($value[ 0 ])) ? $value[ 0 ] : $this->arrayFilterRecursive($value);
             }
@@ -515,7 +513,7 @@ class Arrays
     /**
      * Returns the last element of the array
      *
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
      * @return mixed
      */
@@ -525,11 +523,11 @@ class Arrays
     }
 
     /**
-     * @param array $array1
-     * @param array $array2
-     * @param bool  $strict
+     * @param array<mixed, mixed> $array1
+     * @param array<mixed, mixed> $array2
+     * @param bool                $strict
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function arrayDiffRecursive(array $array1, array $array2, bool $strict = false): array
     {
@@ -543,14 +541,14 @@ class Arrays
                     if (is_array($value1) && is_array($value2)) {
                         $valuesDiff = $this->arrayDiffRecursive($value1, $value2, $strict);
 
-                        if ( ! empty($valuesDiff)) {
+                        if (! empty($valuesDiff)) {
                             $result[ $key1 ] = $valuesDiff;
                         }
                     } else {
                         $result[ $key1 ] = $value2;
                     }
                 } else {
-                    if (($strict && $value1 !== $value2) || ( ! $strict && $value1 != $value2)) {
+                    if (($strict && $value1 !== $value2) || (! $strict && $value1 != $value2)) {
                         $result[ $key1 ] = $value2;
                     }
                 }
@@ -560,7 +558,7 @@ class Arrays
         }
 
         foreach ($array2 as $key2 => $value2) {
-            if ( ! array_key_exists($key2, $array1)) {
+            if (! array_key_exists($key2, $array1)) {
                 $result[ $key2 ] = $value2;
             }
         }
@@ -569,9 +567,9 @@ class Arrays
     }
 
     /**
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function cleanStrings(array $array): array
     {
@@ -589,9 +587,9 @@ class Arrays
     }
 
     /**
-     * @param array   $cache
-     * @param Closure $keyCallable
-     * @param Closure $valueCallable
+     * @param array<string, mixed> $cache
+     * @param Closure              $keyCallable
+     * @param Closure              $valueCallable
      *
      * @return mixed
      */

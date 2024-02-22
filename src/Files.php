@@ -57,14 +57,14 @@ class Files
         // for Windows systems
         $path = preg_replace('/\\\\/', '/', $path);
 
-        $path = preg_match('/^\//', $path) || preg_match('/^[a-zA-Z]:\//', $path) ? rtrim($path, '/') :
-            rtrim($basePath, '/') . '/' . trim($path, '/');
+        $path = preg_match('/^\//', (string)$path) || preg_match('/^[a-zA-Z]:\//', (string)$path) ?
+            rtrim((string)$path, '/') : rtrim($basePath, '/') . '/' . trim((string)$path, '/');
 
         $fileCheck = pathinfo($path);
         // Check for last character
         $pathEnding = substr($path, -1);
 
-        if (( ! array_key_exists('extension', $fileCheck) || $this->variables->isEmpty($fileCheck[ 'extension' ])) &&
+        if ((! array_key_exists('extension', $fileCheck) || $this->variables->isEmpty($fileCheck[ 'extension' ])) &&
             $pathEnding != '/' && $pathEnding != "\\") {
             $path .= '/';
         }
@@ -84,7 +84,7 @@ class Files
      * @param string $path
      * @param string $basePath
      *
-     * @return array
+     * @return array<int, string>
      * @throws Exception
      */
     public function determineFilesFromFilePath(string $path, string $basePath): array
@@ -98,7 +98,7 @@ class Files
      * @param string $path
      * @param string $basePath
      *
-     * @return array
+     * @return array<int, string>
      * @throws Exception
      */
     public function determineDirectoriesFromFilePath(string $path, string $basePath): array
@@ -112,22 +112,30 @@ class Files
      * @param bool   $includeFiles
      * @param bool   $includeDirectories
      *
-     * @return array
+     * @return array<int, string>
      * @throws Exception
      */
     public function determineFromFilePath(
         string $path,
         string $basePath,
         bool $includeFiles = true,
-        bool $includeDirectories = true): array
-    {
+        bool $includeDirectories = true
+    ): array {
         $path = $this->determineFilePath($path, $basePath);
 
-        if ( ! file_exists($path) || ! is_readable($path)) {
+        if (! file_exists($path) || ! is_readable($path)) {
             return [];
         }
 
-        $fileNames = preg_grep('/^\.+$/', scandir($path), PREG_GREP_INVERT);
+        $pathContent = scandir($path);
+        if ($pathContent === false) {
+            $pathContent = [];
+        }
+
+        $fileNames = preg_grep('/^\.+$/', $pathContent, PREG_GREP_INVERT);
+        if ($fileNames === false) {
+            $fileNames = [];
+        }
 
         $files = [];
 
@@ -181,14 +189,14 @@ class Files
     }
 
     /**
-     * @param string $dir
-     * @param array  $fileCallback
-     * @param array  $dirCallback
+     * @param string            $dir
+     * @param array<int, mixed> $fileCallback
+     * @param array<int, mixed> $dirCallback
      *
-     * @return mixed
+     * @return bool
      * @throws InvalidArgumentException
      */
-    protected static function recursiveRemoval(string $dir, array $fileCallback, array $dirCallback = [])
+    protected static function recursiveRemoval(string $dir, array $fileCallback, array $dirCallback = []): bool
     {
         if (empty($fileCallback) || ! is_array($dirCallback)) {
             throw new InvalidArgumentException('file/dir callback is not specified');
@@ -199,8 +207,13 @@ class Files
         }
 
         if (is_dir($dir)) {
-            foreach (scandir($dir, SCANDIR_SORT_NONE) as $item) {
-                if ( ! strcmp($item, '.') || ! strcmp($item, '..')) {
+            $directoryContent = scandir($dir, SCANDIR_SORT_NONE);
+            if ($directoryContent === false) {
+                $directoryContent = [];
+            }
+
+            foreach ($directoryContent as $item) {
+                if (! strcmp($item, '.') || ! strcmp($item, '..')) {
                     continue;
                 }
 
@@ -209,7 +222,7 @@ class Files
 
             $callback = $dirCallback[ 0 ];
 
-            if ( ! is_callable($callback)) {
+            if (! is_callable($callback)) {
                 throw new InvalidArgumentException("'dirCallback' parameter is not callable");
             }
 
@@ -217,16 +230,26 @@ class Files
         } else {
             $callback = $fileCallback[ 0 ];
 
-            if ( ! is_callable($callback)) {
+            if (! is_callable($callback)) {
                 throw new InvalidArgumentException("'fileCallback' parameter is not callable");
             }
 
             $parameters = $fileCallback[ 1 ] ?? [];
         }
 
+        if (! is_array($parameters)) {
+            throw new InvalidArgumentException('Invalid callback parameters');
+        }
+
         array_unshift($parameters, $dir);
 
-        return @call_user_func_array($callback, $parameters);
+        $result = @call_user_func_array($callback, $parameters);
+
+        if (! is_bool($result)) {
+            throw new InvalidArgumentException('Invalid callback result');
+        }
+
+        return $result;
     }
 
     /**

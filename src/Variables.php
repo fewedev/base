@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FeWeDev\Base;
 
+use stdClass;
+
 /**
  * @author      Andreas Knollmann
  * @copyright   Copyright (c) 2024 Softwareentwicklung Andreas Knollmann
@@ -18,15 +20,30 @@ class Variables
      */
     public function isEmpty($value): bool
     {
-        return ! is_bool($value) && empty($value) &&
-            (is_array($value) || is_object($value) || strlen(trim($value ?? '')) === 0);
+        if ($value === null) {
+            return true;
+        }
+
+        if (is_string($value) && strlen(trim($value)) === 0) {
+            return true;
+        }
+
+        if (is_array($value)) {
+            return count($value) === 0;
+        }
+
+        if ($value instanceof stdClass) {
+            return count((array)$value) == 0;
+        }
+
+        return false;
     }
 
     /**
-     * @param array $oldData
-     * @param array $newData
+     * @param array<mixed, mixed> $oldData
+     * @param array<mixed, mixed> $newData
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public function getChangedData(array $oldData, array $newData): array
     {
@@ -36,11 +53,11 @@ class Variables
             $changedAttributeCodes = empty($oldData) ? $newData : [];
 
             foreach ($oldData as $oldDataAttributeCode => $oldDataAttributeValue) {
-                if (strcasecmp($oldDataAttributeCode, 'updated_at') === 0) {
+                if (strcasecmp((string)$oldDataAttributeCode, 'updated_at') === 0) {
                     continue;
                 }
 
-                if ( ! array_key_exists($oldDataAttributeCode, $newData)) {
+                if (! array_key_exists($oldDataAttributeCode, $newData)) {
                     $changedAttributeCodes[] = $oldDataAttributeCode;
                 } else {
                     $newDataAttributeValue = $newData[ $oldDataAttributeCode ];
@@ -50,20 +67,20 @@ class Variables
                             if ((float)$oldDataAttributeValue != (float)$newDataAttributeValue) {
                                 $changedAttributeCodes[] = $oldDataAttributeCode;
                             }
-                        } else if (is_bool($oldDataAttributeValue) && is_bool($newDataAttributeValue)) {
+                        } elseif (is_bool($oldDataAttributeValue) && is_bool($newDataAttributeValue)) {
                             if ($oldDataAttributeValue !== $newDataAttributeValue) {
                                 $changedAttributeCodes[] = $oldDataAttributeValue;
                             }
-                        } else if (is_bool($oldDataAttributeValue) && is_numeric($newDataAttributeValue)) {
+                        } elseif (is_bool($oldDataAttributeValue) && is_numeric($newDataAttributeValue)) {
                             if ($oldDataAttributeValue !== ($newDataAttributeValue !== 0)) {
                                 $changedAttributeCodes[] = $oldDataAttributeValue;
                             }
-                        } else if (is_numeric($oldDataAttributeValue) && is_bool($newDataAttributeValue)) {
+                        } elseif (is_numeric($oldDataAttributeValue) && is_bool($newDataAttributeValue)) {
                             if (($oldDataAttributeValue !== 0) !== $newDataAttributeValue) {
                                 $changedAttributeCodes[] = $oldDataAttributeValue;
                             }
                         } else {
-                            if (strcasecmp($oldDataAttributeValue, $newDataAttributeValue) !== 0) {
+                            if (strcasecmp((string)$oldDataAttributeValue, (string)$newDataAttributeValue) !== 0) {
                                 $changedAttributeCodes[] = $oldDataAttributeCode;
                             }
                         }
