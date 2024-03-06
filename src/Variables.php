@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace FeWeDev\Base;
 
-use stdClass;
-
 /**
  * @author      Andreas Knollmann
  * @copyright   Copyright (c) 2024 Softwareentwicklung Andreas Knollmann
@@ -15,25 +13,23 @@ class Variables
 {
     /**
      * @param mixed $value
-     *
-     * @return bool
      */
     public function isEmpty($value): bool
     {
-        if ($value === null) {
+        if (null === $value) {
             return true;
         }
 
-        if (is_string($value) && strlen(trim($value)) === 0) {
+        if (is_string($value) && 0 === strlen(trim($value))) {
             return true;
         }
 
         if (is_array($value)) {
-            return count($value) === 0;
+            return 0 === count($value);
         }
 
-        if ($value instanceof stdClass) {
-            return count((array)$value) == 0;
+        if ($value instanceof \stdClass) {
+            return 0 == count((array) $value);
         }
 
         return false;
@@ -53,18 +49,18 @@ class Variables
             $changedAttributeCodes = empty($oldData) ? $newData : [];
 
             foreach ($oldData as $oldDataAttributeCode => $oldDataAttributeValue) {
-                if (strcasecmp((string)$oldDataAttributeCode, 'updated_at') === 0) {
+                if (0 === strcasecmp((string) $oldDataAttributeCode, 'updated_at')) {
                     continue;
                 }
 
-                if (! array_key_exists($oldDataAttributeCode, $newData)) {
+                if (!array_key_exists($oldDataAttributeCode, $newData)) {
                     $changedAttributeCodes[] = $oldDataAttributeCode;
                 } else {
-                    $newDataAttributeValue = $newData[ $oldDataAttributeCode ];
+                    $newDataAttributeValue = $newData[$oldDataAttributeCode];
 
                     if (is_scalar($oldDataAttributeValue) && is_scalar($newDataAttributeValue)) {
                         if (is_numeric($oldDataAttributeValue) && is_numeric($newDataAttributeValue)) {
-                            if ((float)$oldDataAttributeValue != (float)$newDataAttributeValue) {
+                            if ((float) $oldDataAttributeValue != (float) $newDataAttributeValue) {
                                 $changedAttributeCodes[] = $oldDataAttributeCode;
                             }
                         } elseif (is_bool($oldDataAttributeValue) && is_bool($newDataAttributeValue)) {
@@ -72,25 +68,41 @@ class Variables
                                 $changedAttributeCodes[] = $oldDataAttributeValue;
                             }
                         } elseif (is_bool($oldDataAttributeValue) && is_numeric($newDataAttributeValue)) {
-                            if ($oldDataAttributeValue !== ($newDataAttributeValue !== 0)) {
+                            if ($oldDataAttributeValue !== (0 !== $newDataAttributeValue)) {
                                 $changedAttributeCodes[] = $oldDataAttributeValue;
                             }
                         } elseif (is_numeric($oldDataAttributeValue) && is_bool($newDataAttributeValue)) {
-                            if (($oldDataAttributeValue !== 0) !== $newDataAttributeValue) {
+                            if ((0 !== $oldDataAttributeValue) !== $newDataAttributeValue) {
                                 $changedAttributeCodes[] = $oldDataAttributeValue;
                             }
                         } else {
-                            if (strcasecmp((string)$oldDataAttributeValue, (string)$newDataAttributeValue) !== 0) {
+                            if (0 !== strcasecmp((string) $oldDataAttributeValue, (string) $newDataAttributeValue)) {
                                 $changedAttributeCodes[] = $oldDataAttributeCode;
                             }
                         }
                     }
 
-                    unset($newData[ $oldDataAttributeCode ]);
+                    unset($newData[$oldDataAttributeCode]);
                 }
             }
         }
 
         return array_values(array_unique($changedAttributeCodes));
+    }
+
+    /**
+     * @param mixed $value
+     */
+    public function stringValue($value): string
+    {
+        if (\is_scalar($value)) {
+            $value = (string) $value;
+        } elseif (\is_object($value) && method_exists($value, '__toString')) {
+            $value = (string) $value->__toString();
+        } else {
+            $value = var_export($value, true);
+        }
+
+        return $value;
     }
 }
