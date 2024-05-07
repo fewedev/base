@@ -432,8 +432,14 @@ class Arrays
      *
      * @return array<mixed, mixed>
      */
-    public function addDeepValue(array $array, array $keys, $value, bool $overwrite = true): array
-    {
+    public function addDeepValue(
+        array $array,
+        array $keys,
+        $value,
+        bool $overwrite = true,
+        bool $add = false,
+        bool $deepAdd = false
+    ): array {
         if (empty($keys)) {
             return $array;
         }
@@ -442,14 +448,36 @@ class Arrays
             $key = array_shift($keys);
             $firstArray = array_key_exists($key, $array) ? $array[$key] : [];
             if (!is_array($firstArray)) {
-                $array[$key] = [$firstArray, $this->addDeepValue([], $keys, $value, $overwrite)];
+                $array[$key] = [$firstArray, $this->addDeepValue([], $keys, $value, $overwrite, $add)];
             } else {
-                $array[$key] = $this->addDeepValue($firstArray, $keys, $value, $overwrite);
+                $array[$key] = $this->addDeepValue($firstArray, $keys, $value, $overwrite, $add);
             }
         } else {
             $key = array_shift($keys);
             if ($overwrite) {
-                $array[$key] = $value;
+                if (!$add || !array_key_exists($key, $array)) {
+                    $array[$key] = $value;
+                } else {
+                    if (is_array($array[$key])) {
+                        if (is_array($value)) {
+                            foreach ($value as $valueKey => $valueValue) {
+                                $array[$key] =
+                                    $this->addDeepValue($array[$key], [$valueKey], $valueValue, $overwrite, $deepAdd);
+                            }
+                        } else {
+                            $array[$key][] = $value;
+                        }
+                    } else {
+                        if (is_array($value)) {
+                            $array[$key] = [$array[$key]];
+                            foreach ($value as $valueKey => $valueValue) {
+                                $array[$key][$valueKey] = $valueValue;
+                            }
+                        } else {
+                            $array[$key] = $value;
+                        }
+                    }
+                }
             } else {
                 if (array_key_exists($key, $array)) {
                     if (!is_array($array[$key])) {
