@@ -17,7 +17,7 @@ class Arrays
     /** @var Strings */
     protected $strings;
 
-    public function __construct(Variables $variables = null, Strings $strings = null)
+    public function __construct(?Variables $variables = null, ?Strings $strings = null)
     {
         if (null === $variables) {
             $variables = new Variables();
@@ -197,7 +197,7 @@ class Arrays
         string $key,
         $defaultValue = null,
         bool $splitKey = true,
-        string $checkedValue = null
+        ?string $checkedValue = null
     ) {
         if (empty($array) || (empty($key) && 0 != $key)) {
             return $defaultValue;

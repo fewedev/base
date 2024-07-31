@@ -17,7 +17,7 @@ class Files
     /** @var Arrays */
     protected $arrays;
 
-    public function __construct(Variables $variables = null, Arrays $arrays = null)
+    public function __construct(?Variables $variables = null, ?Arrays $arrays = null)
     {
         if (null === $variables) {
             $variables = new Variables();

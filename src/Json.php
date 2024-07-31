@@ -14,7 +14,7 @@ class Json
     /** @var Variables */
     protected $variables;
 
-    public function __construct(Variables $variables = null)
+    public function __construct(?Variables $variables = null)
     {
         if (null === $variables) {
             $variables = new Variables();

@@ -105,4 +105,26 @@ class Variables
 
         return $value;
     }
+
+    /**
+     * @param mixed $value
+     *
+     * @throws \Exception
+     */
+    public function intValue($value): int
+    {
+        if (!\is_null($value)) {
+            if (\is_int($value)) {
+                return $value;
+            }
+            if (\is_string($value) && \ctype_digit($value)) {
+                return (int) $value;
+            }
+            if (\is_scalar($value)) {
+                return intval($value);
+            }
+        }
+
+        throw new \Exception(sprintf('Could not convert value: %s to int', var_export($value, true)));
+    }
 }
