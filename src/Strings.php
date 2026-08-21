@@ -54,7 +54,9 @@ class Strings
      */
     public function cleanString(string $string): string
     {
-        return mb_convert_encoding($string, 'UTF-8');
+        $cleaned = mb_convert_encoding($string, 'UTF-8');
+
+        return false === $cleaned ? $string : $cleaned;
     }
 
     /**

@@ -1,7 +1,7 @@
 {
     "name": "fewedev/base",
     "description": "Feasible web development base classes",
-    "version": "1.5.1",
+    "version": "2.0.0",
     "license": "MIT",
     "keywords": [
         "base"
@@ -16,13 +16,14 @@
         }
     ],
     "require": {
-        "php": ">=7.1"
+        "php": ">=7.4",
+        "ext-json": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.3",
-        "phpstan/phpstan": "^1.4",
-        "phpstan/phpstan-strict-rules": "^1.1",
-        "phpstan/phpstan-deprecation-rules": "^1.0"
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -30,7 +31,8 @@
         }
     },
     "scripts": {
-        "cs": "vendor/bin/php-cs-fixer fix src",
+        "fix": "vendor/bin/php-cs-fixer fix src",
+        "cs": "vendor/bin/php-cs-fixer fix src --dry-run --verbose --diff",
         "ps": "vendor/bin/phpstan analyse"
     }
 }

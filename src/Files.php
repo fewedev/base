@@ -11,11 +11,8 @@ namespace FeWeDev\Base;
  */
 class Files
 {
-    /** @var Variables */
-    protected $variables;
-
-    /** @var Arrays */
-    protected $arrays;
+    protected Variables $variables;
+    protected Arrays $arrays;
 
     public function __construct(?Variables $variables = null, ?Arrays $arrays = null)
     {
@@ -43,7 +40,7 @@ class Files
         }
 
         // for Windows systems
-        $path = preg_replace('/\\\\/', '/', $path);
+        $path = preg_replace('/\\\/', '/', $path);
 
         $path = preg_match('/^\//', (string) $path) || preg_match('/^[a-zA-Z]:\//', (string) $path) ?
             rtrim((string) $path, '/') : rtrim($basePath, '/').'/'.trim((string) $path, '/');
@@ -52,9 +49,9 @@ class Files
         // Check for last character
         $pathEnding = substr($path, -1);
 
-        if ((!array_key_exists('extension', $fileCheck) || $this->variables->isEmpty($fileCheck['extension']))
-            && '/' != $pathEnding
-            && '\\' != $pathEnding) {
+        if ((!array_key_exists('extension', $fileCheck) || $this->variables->isEmpty($fileCheck['extension'])) &&
+            '/' != $pathEnding &&
+            '\\' != $pathEnding) {
             $path .= '/';
         }
 
@@ -181,7 +178,7 @@ class Files
      */
     protected static function recursiveRemoval(string $dir, array $fileCallback, array $dirCallback = []): bool
     {
-        if (empty($fileCallback) || !is_array($dirCallback)) {
+        if (0 === count($fileCallback)) {
             throw new \InvalidArgumentException('file/dir callback is not specified');
         }
 
@@ -226,7 +223,7 @@ class Files
 
         array_unshift($parameters, $dir);
 
-        $result = @call_user_func_array($callback, $parameters);
+        $result = @call_user_func_array($callback, array_values($parameters));
 
         if (!is_bool($result)) {
             throw new \InvalidArgumentException('Invalid callback result');

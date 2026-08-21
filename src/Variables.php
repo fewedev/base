@@ -13,8 +13,6 @@ class Variables
 {
     /**
      * @param mixed $value
-     *
-     * @phpstan-assert-if-false !null $value
      */
     public function isEmpty($value): bool
     {
@@ -45,10 +43,10 @@ class Variables
      */
     public function getChangedData(array $oldData, array $newData): array
     {
-        if ($this->isEmpty($oldData)) {
-            $changedAttributeCodes = $this->isEmpty($newData) ? [] : array_keys($newData);
+        if (0 === count($oldData)) {
+            $changedAttributeCodes = 0 === count($newData) ? [] : array_keys($newData);
         } else {
-            $changedAttributeCodes = empty($oldData) ? $newData : [];
+            $changedAttributeCodes = 0 === count($newData) ? $newData : [];
 
             foreach ($oldData as $oldDataAttributeCode => $oldDataAttributeValue) {
                 if (0 === strcasecmp((string) $oldDataAttributeCode, 'updated_at')) {

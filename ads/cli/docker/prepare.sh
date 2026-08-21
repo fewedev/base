@@ -27,6 +27,8 @@ else
   exit 1
 fi
 
+sudo apt-get update --allow-releaseinfo-change
+
 cosyses Composer "${composerVersion}"
 
 rm -rf /var/www/fewedev/base/composer.lock

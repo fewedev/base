@@ -11,8 +11,7 @@ namespace FeWeDev\Base;
  */
 class Json
 {
-    /** @var Variables */
-    protected $variables;
+    protected Variables $variables;
 
     public function __construct(?Variables $variables = null)
     {

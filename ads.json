@@ -9,9 +9,10 @@
     },
     "cli": {
         "imageName": "fewedev/cli",
-        "imageTag": "8.4",
+        "imageTag": "7.4",
+        "skipPortsAvailable": true,
         "containerVolumes": [
-            "${systemPath}:/var/www/fewedev/base:me:w"
+            "{configPath}:/var/www/fewedev/base:me:w"
         ],
         "containerPrepareDockerScript": "ads/cli/docker/prepare.sh",
         "containerInstallDockerScript": "ads/cli/docker/install.sh",

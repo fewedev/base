@@ -11,11 +11,8 @@ namespace FeWeDev\Base;
  */
 class Arrays
 {
-    /** @var Variables */
-    protected $variables;
-
-    /** @var Strings */
-    protected $strings;
+    protected Variables $variables;
+    protected Strings $strings;
 
     public function __construct(?Variables $variables = null, ?Strings $strings = null)
     {
@@ -64,19 +61,13 @@ class Arrays
         }
 
         if ($allKeysNumeric) {
-            return array_merge(
-                $array1,
-                $array2
-            );
+            return array_merge($array1, $array2);
         }
 
         $combined = [];
 
         foreach ($array1 as $key1 => $value1) {
-            $value2 = false !== array_key_exists(
-                $key1,
-                $array2
-            ) ? $array2[$key1] : null;
+            $value2 = false !== array_key_exists($key1, $array2) ? $array2[$key1] : null;
 
             if ((!is_scalar($value1) && !is_array($value1)) || (!is_scalar($value2) && !is_array($value2))) {
                 $combined[$key1] = $value1;
@@ -86,10 +77,7 @@ class Arrays
 
             if (is_scalar($value1)) {
                 if (is_array($value2)) {
-                    $combined[$key1] = $this->mergeArrays(
-                        [$value1],
-                        $value2
-                    );
+                    $combined[$key1] = $this->mergeArrays([$value1], $value2);
                 } else {
                     $combined[$key1] = $value2;
                 }
@@ -97,42 +85,22 @@ class Arrays
                 continue;
             }
 
-            if (is_array($value1)) {
-                if (is_scalar($value2)) {
-                    $combined[$key1] = $value1;
-                    $combined[$key1][] = $value2;
+            if (is_scalar($value2)) {
+                $combined[$key1] = $value1;
+                $combined[$key1][] = $value2;
 
-                    continue;
-                }
-
-                if (is_array($value2)) {
-                    $combined[$key1] = $this->mergeArrays(
-                        $value1,
-                        $value2
-                    );
-                }
+                continue;
             }
+
+            $combined[$key1] = $this->mergeArrays($value1, $value2);
         }
 
         foreach ($array2 as $key2 => $value2) {
-            if (!is_numeric($key2) && false !== !array_key_exists(
-                $key2,
-                $combined
-            )) {
-                if (preg_match(
-                    '/(.*)\+$/',
-                    $key2,
-                    $matches
-                )) {
-                    $key2 = array_key_exists(
-                        1,
-                        $matches
-                    ) ? $matches[1] : null;
+            if (!is_numeric($key2) && false !== !array_key_exists($key2, $combined)) {
+                if (preg_match('/(.*)\+$/', $key2, $matches)) {
+                    $key2 = $matches[1];
 
-                    if (null !== $key2 && false !== array_key_exists(
-                        $key2,
-                        $combined
-                    )) {
+                    if (false !== array_key_exists($key2, $combined)) {
                         if (!is_array($combined[$key2])) {
                             $combined[$key2] = [$combined[$key2]];
                         }
@@ -141,20 +109,10 @@ class Arrays
                     } else {
                         $combined[$key2] = $value2;
                     }
-                } elseif (preg_match(
-                    '/(.*)\-$/',
-                    $key2,
-                    $matches
-                )) {
-                    $key2 = array_key_exists(
-                        1,
-                        $matches
-                    ) ? $matches[1] : null;
+                } elseif (preg_match('/(.*)\-$/', $key2, $matches)) {
+                    $key2 = $matches[1];
 
-                    if (null !== $key2 && false !== array_key_exists(
-                        $key2,
-                        $combined
-                    )) {
+                    if (false !== array_key_exists($key2, $combined)) {
                         $combinedValue = $combined[$key2];
 
                         if (is_array($combinedValue)) {
@@ -218,10 +176,7 @@ class Arrays
      */
     public function getDirectValue(array $array, string $key, $defaultValue = null)
     {
-        return array_key_exists(
-            $key,
-            $array
-        ) ? $array[$key] : $defaultValue;
+        return array_key_exists($key, $array) ? $array[$key] : $defaultValue;
     }
 
     /**
@@ -237,93 +192,50 @@ class Arrays
         bool $splitKey = true,
         ?string $checkedValue = null
     ) {
-        if (empty($array) || (empty($key) && 0 != $key)) {
+        if (empty($array) || $this->variables->isEmpty($key)) {
             return $defaultValue;
         }
 
-        if (!$splitKey && array_key_exists(
-            $key,
-            $array
-        )) {
+        if (!$splitKey && array_key_exists($key, $array)) {
             return $array[$key];
         }
 
-        $keys = $splitKey ? explode(
-            ':',
-            $key
-        ) : [$key];
+        $keys = $splitKey ? explode(':', $key) : [$key];
 
         $firstKey = trim((string) array_shift($keys));
 
         if ($checkedValue && 0 === count($keys)) {
-            if (array_key_exists(
-                $firstKey,
-                $array
-            ) && $array[$firstKey] == $checkedValue) {
+            if (array_key_exists($firstKey, $array) && $array[$firstKey] == $checkedValue) {
                 return $array;
             }
 
             foreach ($array as $arrayItem) {
-                if (is_array($arrayItem) && array_key_exists(
-                    $firstKey,
-                    $arrayItem
-                ) && $arrayItem[$firstKey] == $checkedValue) {
+                if (is_array($arrayItem) && array_key_exists($firstKey, $arrayItem) &&
+                    $arrayItem[$firstKey] == $checkedValue) {
                     return $arrayItem;
                 }
             }
-        } elseif (preg_match(
-            '/^\[([\w_-]+)=(.+)\]$/',
-            $firstKey,
-            $matches
-        )) {
-            $valueKey = array_key_exists(
-                1,
-                $matches
-            ) ? $matches[1] : null;
-            $valueValue = array_key_exists(
-                2,
-                $matches
-            ) ? $matches[2] : null;
+        } elseif (preg_match('/^\[([\w_-]+)=(.+)\]$/', $firstKey, $matches)) {
+            $valueKey = $matches[1];
+            $valueValue = $matches[2];
 
             foreach ($array as $arrayKey => $arrayValue) {
                 if (is_array($arrayValue)) {
                     $valueKeys = array_keys($arrayValue);
 
                     foreach ($valueKeys as $nextValueKey) {
-                        if (null !== $valueKey && 0 == strcasecmp(
-                            $nextValueKey,
-                            $valueKey
-                        ) && array_key_exists(
-                            $nextValueKey,
-                            $arrayValue
-                        ) && $arrayValue[$nextValueKey] == $valueValue) {
+                        if (0 == strcasecmp($nextValueKey, $valueKey) && array_key_exists($nextValueKey, $arrayValue) &&
+                            $arrayValue[$nextValueKey] == $valueValue) {
                             if (count($keys) > 0) {
-                                return $this->getValue(
-                                    $arrayValue,
-                                    join(
-                                        ':',
-                                        $keys
-                                    ),
-                                    $defaultValue
-                                );
+                                return $this->getValue($arrayValue, join(':', $keys), $defaultValue);
                             }
 
                             return $arrayValue;
                         }
                     }
-                } elseif (null !== $valueKey && 0 == strcasecmp(
-                    (string) $arrayKey,
-                    $valueKey
-                ) && $valueValue == $arrayValue) {
+                } elseif (0 == strcasecmp((string) $arrayKey, $valueKey) && $valueValue == $arrayValue) {
                     if (count($keys) > 0) {
-                        return $this->getValue(
-                            $array,
-                            join(
-                                ':',
-                                $keys
-                            ),
-                            $defaultValue
-                        );
+                        return $this->getValue($array, join(':', $keys), $defaultValue);
                     }
 
                     return $array;
@@ -332,15 +244,11 @@ class Arrays
         } else {
             if (!$this->isAssociative($array) && !is_numeric($firstKey)) {
                 $result = [];
+
                 foreach ($array as $arrayValue) {
                     if (is_array($arrayValue)) {
-                        $arrayResult = $this->getValue(
-                            $arrayValue,
-                            $key,
-                            null,
-                            $splitKey,
-                            $checkedValue
-                        );
+                        $arrayResult = $this->getValue($arrayValue, $key, null, $splitKey, $checkedValue);
+
                         if (null !== $arrayResult) {
                             $result[] = $arrayResult;
                         }
@@ -349,30 +257,17 @@ class Arrays
 
                 return empty($result) ? $defaultValue : $result;
             }
+
             $arrayKeys = array_keys($array);
 
             foreach ($arrayKeys as $arrayKey) {
-                if (0 == strcasecmp(
-                    (string) $arrayKey,
-                    (string) $firstKey
-                )) {
-                    $result = array_key_exists(
-                        $arrayKey,
-                        $array
-                    ) ? $array[$arrayKey] : null;
+                if (0 == strcasecmp((string) $arrayKey, (string) $firstKey)) {
+                    $result = array_key_exists($arrayKey, $array) ? $array[$arrayKey] : null;
 
                     if (is_array($result) && count($keys) > 0) {
-                        return $this->getValue(
-                            $result,
-                            join(
-                                ':',
-                                $keys
-                            ),
-                            $defaultValue,
-                            $splitKey,
-                            $checkedValue
-                        );
+                        return $this->getValue($result, join(':', $keys), $defaultValue, $splitKey, $checkedValue);
                     }
+
                     if (0 === count($keys)) {
                         return $result;
                     }
@@ -394,10 +289,7 @@ class Arrays
     public function getKey(array $array, string $value, $defaultValue = null)
     {
         foreach ($array as $key => $nextValue) {
-            if (is_scalar($nextValue) && 0 == strcasecmp(
-                strval($nextValue),
-                $value
-            )) {
+            if (is_scalar($nextValue) && 0 == strcasecmp(strval($nextValue), $value)) {
                 return $key;
             }
         }
@@ -418,16 +310,10 @@ class Arrays
                 return is_string($useInput) ? strtolower($useInput) : $useInput;
             };
 
-            $arrayCopy = array_map(
-                $function,
-                $arrayCopy
-            );
+            $arrayCopy = array_map($function, $arrayCopy);
         }
 
-        return in_array(
-            is_string($value) && false === $caseSensitive ? strtolower($value) : $value,
-            $arrayCopy
-        );
+        return in_array(is_string($value) && false === $caseSensitive ? strtolower($value) : $value, $arrayCopy);
     }
 
     /**
@@ -462,18 +348,12 @@ class Arrays
         }
 
         for ($iterator = count($array) - 1; $iterator; --$iterator) {
-            if (!array_key_exists(
-                $iterator,
-                $array
-            )) {
+            if (!array_key_exists($iterator, $array)) {
                 return true;
             }
         }
 
-        return !array_key_exists(
-            0,
-            $array
-        );
+        return !array_key_exists(0, $array);
     }
 
     /**
@@ -488,27 +368,16 @@ class Arrays
                 $output .= $lineBreak;
             }
 
-            $output .= str_repeat(
-                '    ',
-                $level
-            ).$key.': ';
+            $output .= sprintf('%s%s: ', str_repeat('    ', $level), $key);
 
             if (is_array($value)) {
-                $valueOutput = $this->output(
-                    $value,
-                    $lineBreak,
-                    $level + 1
-                );
+                $valueOutput = $this->output($value, $lineBreak, $level + 1);
 
                 if (!empty($valueOutput)) {
                     $output .= $lineBreak.$valueOutput;
                 }
             } elseif (is_object($value) && is_callable([$value, '__toArray'])) {
-                $valueOutput = $this->output(
-                    $value->__toArray(),
-                    $lineBreak,
-                    $level + 1
-                );
+                $valueOutput = $this->output($value->__toArray(), $lineBreak, $level + 1);
 
                 if (!empty($valueOutput)) {
                     $output .= $lineBreak.$valueOutput;
@@ -537,10 +406,7 @@ class Arrays
         return array_filter(
             $array,
             function ($key) use ($regex) {
-                return preg_match(
-                    '/'.$regex.'/',
-                    (string) $key
-                );
+                return 1 === preg_match('/'.$regex.'/', (string) $key);
             },
             ARRAY_FILTER_USE_KEY
         );
@@ -568,23 +434,11 @@ class Arrays
 
         if (count($keys) > 1) {
             $key = array_shift($keys);
-            $firstArray = array_key_exists(
-                $key,
-                $array
-            ) ? $array[$key] : [];
+            $firstArray = array_key_exists($key, $array) ? $array[$key] : [];
+
             if (!is_array($firstArray)) {
-                $array[$key] = [
-                    $firstArray,
-                    $this->addDeepValue(
-                        [],
-                        $keys,
-                        $value,
-                        $overwrite,
-                        $add,
-                        $deepAdd,
-                        $checkValue
-                    ),
-                ];
+                $array[$key] =
+                    [$firstArray, $this->addDeepValue([], $keys, $value, $overwrite, $add, $deepAdd, $checkValue)];
             } else {
                 $array[$key] = $this->addDeepValue(
                     $firstArray,
@@ -599,10 +453,7 @@ class Arrays
         } else {
             $key = array_shift($keys);
             if ($overwrite) {
-                if (!$add || !array_key_exists(
-                    $key,
-                    $array
-                )) {
+                if (!$add || !array_key_exists($key, $array)) {
                     $array[$key] = $value;
                 } else {
                     if (is_array($array[$key])) {
@@ -633,16 +484,10 @@ class Arrays
                     }
                 }
             } else {
-                if (array_key_exists(
-                    $key,
-                    $array
-                )) {
+                if (array_key_exists($key, $array)) {
                     if ($checkValue) {
                         $valueMatch = !is_array($array[$key]) && $array[$key] == $value;
-                        $arrayMatch = is_array($array[$key]) && in_array(
-                            $value,
-                            $array[$key]
-                        );
+                        $arrayMatch = is_array($array[$key]) && in_array($value, $array[$key]);
                         if ($valueMatch || $arrayMatch) {
                             return $array;
                         }
@@ -672,19 +517,16 @@ class Arrays
         foreach ($array as &$value) {
             if (is_array($value)) {
                 /** @var array<mixed, mixed> $value */
-                $value = 1 === count($value) && array_key_exists(
-                    0,
-                    $value
-                ) && is_string($value[0]) && $this->variables->isEmpty(trim($value[0])) ? $value[0]
-                    : $this->arrayFilterRecursive($value);
+                $value = 1 === count($value) && array_key_exists(0, $value) && is_string($value[0]) &&
+                $this->variables->isEmpty(trim($value[0])) ? $value[0] : $this->arrayFilterRecursive($value);
             }
         }
 
         return array_filter(
             $array,
             function ($value) {
-                return !$this->variables->isEmpty($value)
-                    && !(is_string($value) && $this->variables->isEmpty(trim($value)));
+                return !$this->variables->isEmpty($value) &&
+                    !(is_string($value) && $this->variables->isEmpty(trim($value)));
             }
         );
     }
@@ -698,10 +540,7 @@ class Arrays
      */
     public function getLast(array $array)
     {
-        return array_slice(
-            $array,
-            -1
-        )[0];
+        return array_slice($array, -1)[0];
     }
 
     /**
@@ -715,19 +554,12 @@ class Arrays
         $result = [];
 
         foreach ($array1 as $key1 => $value1) {
-            if (array_key_exists(
-                $key1,
-                $array2
-            )) {
+            if (array_key_exists($key1, $array2)) {
                 $value2 = $array2[$key1];
 
                 if (is_array($value1) || is_array($value2)) {
                     if (is_array($value1) && is_array($value2)) {
-                        $valuesDiff = $this->arrayDiffRecursive(
-                            $value1,
-                            $value2,
-                            $strict
-                        );
+                        $valuesDiff = $this->arrayDiffRecursive($value1, $value2, $strict);
 
                         if (!empty($valuesDiff)) {
                             $result[$key1] = $valuesDiff;
@@ -746,10 +578,7 @@ class Arrays
         }
 
         foreach ($array2 as $key2 => $value2) {
-            if (!array_key_exists(
-                $key2,
-                $array1
-            )) {
+            if (!array_key_exists($key2, $array1)) {
                 $result[$key2] = $value2;
             }
         }
@@ -786,10 +615,11 @@ class Arrays
     {
         $key = $keyCallable();
 
-        if (array_key_exists(
-            $key,
-            $cache
-        )) {
+        if (!is_string($key)) {
+            $key = $this->variables->stringValue($key);
+        }
+
+        if (array_key_exists($key, $cache)) {
             $value = $cache[$key];
         } else {
             $value = $valueCallable();
@@ -797,5 +627,19 @@ class Arrays
         }
 
         return $value;
+    }
+
+    /**
+     * @param array<mixed> $array
+     */
+    public function implode(array $array, string $glue = ','): string
+    {
+        $result = [];
+
+        foreach ($array as $value) {
+            $result[] = $this->variables->stringValue($value);
+        }
+
+        return implode($glue, $result);
     }
 }

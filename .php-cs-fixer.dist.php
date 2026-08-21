@@ -7,7 +7,10 @@ $finder = PhpCsFixer\Finder::create()->in('src');
 $rules = [
     '@PHP71Migration' => true,
     '@PSR12'          => true,
-    '@PhpCsFixer'     => true
+    '@PhpCsFixer'     => true,
+    'operator_linebreak' => [
+        'position' => 'end',
+    ]
 ];
 
 $config = new PhpCsFixer\Config();
