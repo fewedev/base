@@ -642,4 +642,20 @@ class Arrays
 
         return implode($glue, $result);
     }
+
+    /**
+     * @param array<mixed> $array
+     *
+     * @return string[]
+     */
+    public function strings(array $array): array
+    {
+        $result = [];
+
+        foreach ($array as $value) {
+            $result[] = $this->variables->stringValue($value);
+        }
+
+        return $result;
+    }
 }
