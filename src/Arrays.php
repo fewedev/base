@@ -658,4 +658,18 @@ class Arrays
 
         return $result;
     }
+
+    /**
+     * @param array<mixed> $array
+     */
+    public function ksortRecursive(array &$array, int $flags = SORT_REGULAR): void
+    {
+        ksort($array, $flags);
+
+        array_walk($array, function (&$value) use ($flags) {
+            if (is_array($value)) {
+                $this->ksortRecursive($value, $flags);
+            }
+        });
+    }
 }
