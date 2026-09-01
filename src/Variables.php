@@ -13,6 +13,8 @@ class Variables
 {
     /**
      * @param mixed $value
+     *
+     * @phpstan-assert-if-false !=null $value
      */
     public function isEmpty($value): bool
     {
