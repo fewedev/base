@@ -11,6 +11,17 @@ namespace FeWeDev\Base;
  */
 class Strings
 {
+    protected Variables $variables;
+
+    public function __construct(?Variables $variables = null)
+    {
+        if (null === $variables) {
+            $variables = new Variables();
+        }
+
+        $this->variables = $variables;
+    }
+
     /**
      * Generates with the help ov the  method generateUUID a GUID Version 5.
      * A GUID has the format %08s-%04s-%04x-%04x-%12s e.g. :
@@ -76,5 +87,58 @@ class Strings
         }
 
         return $string;
+    }
+
+    /**
+     * @param array<string, mixed> $placeholderValues
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function replacePlaceHolders(
+        string $text,
+        array $placeholderValues,
+        string $opening = '{',
+        string $closing = '}',
+        bool $useKeyIfMissing = false,
+        bool $allowEmptyValue = false
+    ): string {
+        do {
+            preg_match(
+                sprintf('/%s[\w_-]+?%s/', preg_quote($opening), preg_quote($closing)),
+                $text,
+                $textMatch,
+                PREG_OFFSET_CAPTURE
+            );
+
+            $hasMatch = !$this->variables->isEmpty($textMatch);
+
+            if ($hasMatch) {
+                $textMatch = $textMatch[0];
+
+                [$placeHolder, $position] = $textMatch;
+
+                $placeHolderKey = substr($placeHolder, strlen($opening), strlen($closing) * -1);
+
+                $placeHolderValue = array_key_exists(
+                    $placeHolderKey,
+                    $placeholderValues
+                ) ? $this->variables->stringValue(
+                    $placeholderValues[$placeHolderKey]
+                ) : ($useKeyIfMissing ? $placeHolderKey : '');
+
+                if ($this->variables->isEmpty($placeHolderValue) && !$allowEmptyValue) {
+                    throw new \InvalidArgumentException(sprintf('Missing value for placeholder: %s', $placeHolderKey));
+                }
+
+                $text = substr_replace(
+                    $text,
+                    $placeHolderValue,
+                    $position,
+                    strlen($placeHolder)
+                );
+            }
+        } while ($hasMatch);
+
+        return $text;
     }
 }
